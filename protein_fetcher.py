@@ -34,7 +34,6 @@ def fetch_pdb(uniprot_id: str) -> str | None:
 
 
 def fetch_protein_info(uniprot_id: str) -> dict | None:
-    """Get protein name, organism, length, and function from UniProt."""
     url = f"{UNIPROT_BASE}/{uniprot_id}.json"
     response = requests.get(url)
 
@@ -44,12 +43,12 @@ def fetch_protein_info(uniprot_id: str) -> dict | None:
     data = response.json()
 
     name = data.get("proteinDescription", {}) \
-        .get("recommendedName", {}) \
-        .get("fullName", {}) \
-        .get("value", "Unknown")
+               .get("recommendedName", {}) \
+               .get("fullName", {}) \
+               .get("value", "Unknown")
 
     organism = data.get("organism", {}) \
-        .get("scientificName", "Unknown")
+                   .get("scientificName", "Unknown")
 
     length = data.get("sequence", {}).get("length", 0)
 
@@ -62,10 +61,17 @@ def fetch_protein_info(uniprot_id: str) -> dict | None:
                 function = texts[0].get("value", function)
                 break
 
+    # ── Extract gene symbol ───────────────────────────────────────
+    gene_symbol = "Unknown"
+    genes = data.get("genes", [])
+    if genes:
+        gene_symbol = genes[0].get("geneName", {}).get("value", "Unknown")
+
     return {
-        "name": name,
-        "organism": organism,
-        "length": length,
-        "function": function,
-        "id": uniprot_id
+        "name":        name,
+        "organism":    organism,
+        "length":      length,
+        "function":    function,
+        "id":          uniprot_id,
+        "gene_symbol": gene_symbol,   # ← new field
     }
